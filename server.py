@@ -1,5 +1,4 @@
 import asyncio
-import datetime
 import os.path
 
 import aiofiles
@@ -7,6 +6,10 @@ from aiohttp import web
 
 
 async def archive(request):
+    archive_hash = request.match_info.get('archive_hash')
+    archive_path = os.path.join('test_photos', archive_hash)
+    if not os.path.exists(archive_path):
+        raise web.HTTPNotFound(text='Архив не существует или был удален')
     response = web.StreamResponse()
 
     # Большинство браузеров не отрисовывают частично загруженный контент, только если это не HTML.
@@ -16,8 +19,7 @@ async def archive(request):
 
     # Отправляет клиенту HTTP заголовки
     await response.prepare(request)
-    archive_hash = request.match_info.get('archive_hash')
-    archive_path = os.path.join('test_photos', archive_hash)
+
     process = await asyncio.create_subprocess_exec(
         'zip', '-r', '-', '.',
         stdout=asyncio.subprocess.PIPE,
