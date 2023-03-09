@@ -34,12 +34,13 @@ async def archive(request):
             stdout_part = await process.stdout.read(100 * 1024)
             logging.info('Sending archive chunk ...')
             await response.write(stdout_part)
-            await asyncio.sleep(1)
     except asyncio.CancelledError:
         logging.debug('Download was interrupted')
         raise
     finally:
-        pass
+        if process.returncode is None:
+            process.kill()
+            await process.communicate()
     return response
 
 
