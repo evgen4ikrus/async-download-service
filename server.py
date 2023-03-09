@@ -29,10 +29,17 @@ async def archive(request):
         stderr=asyncio.subprocess.PIPE,
         cwd=archive_path
     )
-    while not process.stdout.at_eof():
-        stdout_part = await process.stdout.read(100 * 1024)
-        logging.info('Sending archive chunk ...')
-        await response.write(stdout_part)
+    try:
+        while not process.stdout.at_eof():
+            stdout_part = await process.stdout.read(100 * 1024)
+            logging.info('Sending archive chunk ...')
+            await response.write(stdout_part)
+            await asyncio.sleep(1)
+    except asyncio.CancelledError:
+        logging.debug('Download was interrupted')
+        raise
+    finally:
+        pass
     return response
 
 
@@ -44,7 +51,7 @@ async def handle_index_page(request):
 
 if __name__ == '__main__':
     logging.basicConfig(format=u'%(filename)s[LINE:%(lineno)d]# %(levelname)-8s [%(asctime)s]  %(message)s',
-                        level=logging.INFO)
+                        level=logging.DEBUG)
     app = web.Application()
     app.add_routes([
         web.get('/', handle_index_page),
