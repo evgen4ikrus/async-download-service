@@ -26,7 +26,7 @@ def get_args():
 
 
 async def archive(request):
-    archive_hash = request.match_info.get('archive_hash')
+    archive_hash = request.match_info['archive_hash']
     archive_path = os.path.join(folder_path, archive_hash)
     if not os.path.exists(archive_path):
         raise web.HTTPNotFound(text='Архив не существует или был удален')
